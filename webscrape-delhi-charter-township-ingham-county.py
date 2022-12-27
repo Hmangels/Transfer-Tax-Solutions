@@ -57,12 +57,9 @@ password = WebDriverWait(driver, 100).until(EC.element_to_be_clickable((By.ID, '
 
 
 
-#username.send_keys('Hmangels') #username
-#password.send_keys('j.G#*U9yCvJX5_e') #!!! PASSWORD DO NOT MAKE PUBLIC !!!
-#username.send_keys('Hmangels2') #username
-#password.send_keys('ZBrwReMJ8:-hp8x') #!!! PASSWORD DO NOT MAKE PUBLIC !!!
-username.send_keys('slegnamh') #username
-password.send_keys('XCVbooT32') #!!! PASSWORD DO NOT MAKE PUBLIC !!!
+
+username.send_keys('') #username
+password.send_keys('') #!!! PASSWORD DO NOT MAKE PUBLIC !!!
 
 
 # this clicks the sign in button after username and password are entered in
