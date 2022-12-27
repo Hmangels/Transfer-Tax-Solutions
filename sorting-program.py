@@ -1,6 +1,7 @@
 import csv
 import locale
 import re
+import itertools
 from datetime import datetime
 from re import sub
 from dateutil.relativedelta import relativedelta
@@ -9,9 +10,17 @@ from decimal import Decimal
 # Henry Mangelsdorf 2022
 
 
+# 11/21/2022 I added this piece of code throughout the script:
 
+# new_list_of_parcel_groups = []
+# for elem in list_of_parcel_groups:
+#     if elem not in new_list_of_parcel_groups:
+#         new_list_of_parcel_groups.append(elem)
+# list_of_parcel_groups = new_list_of_parcel_groups
 
+# It removes duplicates unless the duplicates were right next to eachother. The program still sees them as just one parcel. 
 
+# 12/12/2022 I added code in parse one to keep duplicate single row parcels from being appended to single_row or disqualified
 
 ########################################################################################################################################################################################################################################################################################
 # PARSE 1
@@ -39,7 +48,7 @@ to_be_determined_counter = 0
 
 
 
-with open('city-of-battle-creek-11_20_2018-10_20_2022.csv') as csv_file:
+with open('city-of-lansing-ingham-county-01_14_2019-12_21_2022.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
     for row in csv_reader:
@@ -69,10 +78,12 @@ for i in range(0,last_index):
                 if (' ' + str(word[0]) + ' ') in (' '+str(csv_original[i][6]).upper()+' '): 
                     disqualified_word_check = True
             if(disqualified_word_check):
-                disqualified.append(csv_orginal[i])
+                if csv_original[i] not in disqualified:
+                    disqualified.append(csv_original[i])
                 continue
             else:
-                single_row.append(csv_original[i])
+                if csv_original[i] not in single_row:
+                    single_row.append(csv_original[i])
                 continue
             
                 
@@ -85,10 +96,12 @@ for i in range(0,last_index):
                 if (' ' + str(word[0]) + ' ') in (' '+str(csv_original[i][6]).upper()+' '): 
                     disqualified_word_check = True
             if(disqualified_word_check):
-                disqualified.append(csv_original[i])
+                if csv_original[i] not in disqualified:
+                    disqualified.append(csv_original[i])
                 continue
             else:
-                single_row.append(csv_original[i])
+                if csv_original[i] not in single_row:
+                    single_row.append(csv_original[i])
                 continue
                
     
@@ -100,10 +113,12 @@ for i in range(0,last_index):
                 if (' ' + str(word[0]) + ' ') in (' '+str(csv_original[i][6]).upper()+' '): 
                     disqualified_word_check = True
         if(disqualified_word_check):
-            disqualified.append(csv_original[i])
+            if csv_original[i] not in disqualified:
+                disqualified.append(csv_original[i])
             continue
         else:
-            single_row.append(csv_original[i])
+            if csv_original[i] not in single_row:
+                single_row.append(csv_original[i])
             continue
     else:
         not_removed.append(csv_original[i])
@@ -185,6 +200,9 @@ for i in range(0,last_index):
 #        not_removed.append(csv_original[i])
 #        #not_removed_counter += 1
 
+
+
+
 total_for_percentages = ( (len(not_removed) + len(disqualified) + (len(qualified))) + (len(to_be_determined)) + (len(single_row))  )
 print('Parse One - Not Removed:')
 print('Len(): ' + str(len(not_removed)))
@@ -196,7 +214,7 @@ print('Parse One - Qualified:')
 print('Len(): ' + str(len(qualified)))
 print('Parse One - Single Row:')
 print('Len(): ' + str(len(single_row)))
-print('Parse One - Total:')
+print('Parse One - Pre-Duplicate Removal Total:')
 print('Len(): ' + str(len(not_removed) + (int(len(disqualified))) + (int(len(qualified))) + (int(len(to_be_determined))) + (int(len(single_row)))))
 print('\n')
 not_removed_percentage_str = str(round(float(len(not_removed)/total_for_percentages),3))  + '  '
@@ -239,6 +257,13 @@ for i in range(0,last_index): # This groups together records that are in the sam
 
 del list_of_parcel_groups[0]
 not_removed = []
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 
 for i in range(len(list_of_parcel_groups)):
     SEV_list_0 = [] 
@@ -337,7 +362,7 @@ print('Parse Two - Qualified:')
 print('Len(): ' + str(len(qualified)))
 print('Parse Two - Single Row:')
 print('Len(): ' + str(len(single_row)))
-print('Parse Two - Total:')
+print('Parse Two - True Total:')
 print('Len(): ' + str(len(not_removed) + (int(len(disqualified))) + (int(len(qualified))) + (int(len(to_be_determined))) + (int(len(single_row)))))
 print('\n')
 not_removed_percentage_str = str(round(float(len(not_removed)/total_for_percentages),3))  + '  '
@@ -386,6 +411,13 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 for i in range(len(list_of_parcel_groups)):
     
 
@@ -416,15 +448,18 @@ for i in range(len(list_of_parcel_groups)):
                 SEV_list_0 = [] 
                 SEV_list_1 = []
                 PRE_MBT_list_0 = []
+                PRE_MBT_list_1 = []
                 PRE_MBT_check = False
+                PRE_MBT_same_year_check = False
                 for k in range(10,14):
                     if(list_of_parcel_groups[i][j][k] != 'NA'):
                         PRE_MBT_list_0.append(convert(list_of_parcel_groups[i][j][k])[3]) # This Gathers all the PRE/MBT percentages
                         if(k == 10): # SEV for winter season of the sale date
                             SEV_list_0.append(convert(list_of_parcel_groups[i][j][k])[2])
+                            PRE_MBT_list_1.append(convert(list_of_parcel_groups[i][j][k])[3])
                         if(k == 11): # SEV for summer season of the sale date
                             SEV_list_0.append(convert(list_of_parcel_groups[i][j][k])[2])
-
+                            PRE_MBT_list_1.append(convert(list_of_parcel_groups[i][j][k])[3])
                 if len(SEV_list_0) == 2: # If the SEV list has two values check to see if they match and if so remove the 2nd element so that we can just refer to the first element.
                     if SEV_list_0[0] == SEV_list_0[1]:
                         del SEV_list_0[1]
@@ -440,12 +475,16 @@ for i in range(len(list_of_parcel_groups)):
                     if SEV_list_1[0] == SEV_list_1[1]:
                         del SEV_list_1[1]
                 if len(PRE_MBT_list_0) > 0 :
-                    PRE_MBT_check = all(element == '100.0000%' for element in PRE_MBT_list_0) # if every value in the PRE_MBT_list_0 is == to 100.0000% then make the PRE_MBT check == true.
+                    PRE_MBT_check = all(element == '100.0000%' for element in PRE_MBT_list_0) # If every value in the PRE_MBT_list_0 is == to 100.0000% then make the PRE_MBT check == true.
                 else:
                     if(j==last_index-1):
                         for item in list_of_parcel_groups[i]:
                             not_removed.append(item)
                     continue
+                if len(PRE_MBT_list_1) > 0 : # 11/22/2022 This is a homestead check for same year sales. If they are all 0% than the check will equal true. 
+                    PRE_MBT_same_year_check = all(element == '0.0000%' for element in PRE_MBT_list_1)   
+
+                
 
                 if (len(SEV_list_0) > 0) and (len(SEV_list_1) > 0):
                     assessed_value_0 = Decimal(sub(r'[^\d.]', '', SEV_list_0[0]))
@@ -463,7 +502,7 @@ for i in range(len(list_of_parcel_groups)):
                 string_input_with_date2 = list_of_parcel_groups[i][j+1][3]
                 date1 = datetime.strptime(string_input_with_date1, "%m/%d/%Y")
                 date2 = datetime.strptime(string_input_with_date2, "%m/%d/%Y")
-                if (assessed_value_0 == assessed_value_1) and ((date1.year - date2.year) * 12 + (date1.month - date2.month) >= 2): # This is the 3 month gap check. I use 2 here instead of 3 as a sort of buffer. I do not include a PRE/MBT check because in this case the previous year homestead does not matter. Also the homestead in the current year for same year sales is tricky.
+                if (assessed_value_0 == assessed_value_1) and ((date1.year - date2.year) * 12 + (date1.month - date2.month) >= 2) and not PRE_MBT_same_year_check: # This is the 3 month gap check. I use 2 here instead of 3 as a sort of buffer. I do not include a PRE/MBT check because in this case the previous year homestead does not matter. Also the homestead in the current year for same year sales is tricky.
                     for item in list_of_parcel_groups[i]:
                         qualified.append(item)
                     break
@@ -538,6 +577,13 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 for i in range(len(list_of_parcel_groups)):
     
     
@@ -651,6 +697,13 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 
 for i in range(len(list_of_parcel_groups)):
     
@@ -810,6 +863,13 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 for i in range(len(list_of_parcel_groups)):
     
    
@@ -911,6 +971,13 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 
 for i in range(len(list_of_parcel_groups)):
     
@@ -1017,6 +1084,12 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 not_removed = []
 del list_of_parcel_groups[0]
 
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 for i in range(len(list_of_parcel_groups)):
 
     parcel_row_num = len(list_of_parcel_groups[i])
@@ -1066,7 +1139,7 @@ print('\n')
 ########################################################################################################################################################################################################################################################################################   
 # PARSE 9
 # 11/10/2022
-# Parse 9 will disqualify parcels that have no numbers in their address.
+# Parse 9 will disqualify parcels that have no numbers in their address. 12/6/2022 Sometimes a parcel will be flagged as qualified before it reaches this rule where it would be disqualified.
 ########################################################################################################################################################################################################################################################################################
 
 def contains_number(string):
@@ -1091,6 +1164,12 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
 
 for i in range(len(list_of_parcel_groups)):
 
@@ -1134,13 +1213,6 @@ print('\n')
 print('\n')    
 
 
-
-
-
-
-
-
-
 ########################################################################################################################################################################################################################################################################################   
 # PARSE 10
 # 11/10/2022
@@ -1168,6 +1240,13 @@ for i in range(0,last_index_0): # This groups together records that are in the s
 
 not_removed = []
 del list_of_parcel_groups[0]
+
+new_list_of_parcel_groups = []
+for elem in list_of_parcel_groups:
+    if elem not in new_list_of_parcel_groups:
+        new_list_of_parcel_groups.append(elem)
+list_of_parcel_groups = new_list_of_parcel_groups
+
 
 for i in range(len(list_of_parcel_groups)):
     parcel_row_num = len(list_of_parcel_groups[i])
@@ -1298,66 +1377,8 @@ sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: dat
 for i in range(0,len(sorted_list_of_parcel_groups)):   
     for item in sorted_list_of_parcel_groups[i]:
         qualified.append(item)
-
-
-
-last_index_0 = len(qualified)
-list_of_parcel_groups=[]
-parcel_group = []
-
-for i in range(0,last_index_0): # This groups together records that are in the same parcel/address.
-    if i == last_index_0-1:
-        parcel_group.append(qualified[i])
-        list_of_parcel_groups.append(parcel_group)  
-    else:
-        if qualified[i][2] != qualified[i-1][2]:
-            list_of_parcel_groups.append(parcel_group)
-            parcel_group = []
-            parcel_group.append(qualified[i])
-            continue
-        parcel_group.append(qualified[i])
-
-qualified = []
-del list_of_parcel_groups[0]
-
-
-
-sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: datetime.strptime(x[0][3], "%m/%d/%Y"))
-
-for i in range(0,len(sorted_list_of_parcel_groups)):   
-    for item in sorted_list_of_parcel_groups[i]:
-        qualified.append(item)
     qualified.append('\n')
 ########################################################################################################################################################################################################################################################################################
-last_index_0 = len(disqualified)
-list_of_parcel_groups=[]
-parcel_group = []
-
-for i in range(0,last_index_0): # This groups together records that are in the same parcel/address.
-    if i == last_index_0-1:
-        parcel_group.append(disqualified[i])
-        list_of_parcel_groups.append(parcel_group)  
-    else:
-        if disqualified[i][2] != disqualified[i-1][2]:
-            list_of_parcel_groups.append(parcel_group)
-            parcel_group = []
-            parcel_group.append(disqualified[i])
-            continue
-        parcel_group.append(disqualified[i])
-
-disqualified = []
-del list_of_parcel_groups[0]
-
-
-
-sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: datetime.strptime(x[0][3], "%m/%d/%Y"))
-
-for i in range(0,len(sorted_list_of_parcel_groups)):   
-    for item in sorted_list_of_parcel_groups[i]:
-        disqualified.append(item)
-
-
-
 last_index_0 = len(disqualified)
 list_of_parcel_groups=[]
 parcel_group = []
@@ -1412,35 +1433,6 @@ sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: dat
 for i in range(0,len(sorted_list_of_parcel_groups)):   
     for item in sorted_list_of_parcel_groups[i]:
         to_be_determined.append(item)
-
-
-
-last_index_0 = len(to_be_determined)
-list_of_parcel_groups=[]
-parcel_group = []
-
-for i in range(0,last_index_0): # This groups together records that are in the same parcel/address.
-    if i == last_index_0-1:
-        parcel_group.append(to_be_determined[i])
-        list_of_parcel_groups.append(parcel_group)  
-    else:
-        if to_be_determined[i][2] != to_be_determined[i-1][2]:
-            list_of_parcel_groups.append(parcel_group)
-            parcel_group = []
-            parcel_group.append(to_be_determined[i])
-            continue
-        parcel_group.append(to_be_determined[i])
-
-to_be_determined = []
-del list_of_parcel_groups[0]
-
-
-
-sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: datetime.strptime(x[0][3], "%m/%d/%Y"))
-
-for i in range(0,len(sorted_list_of_parcel_groups)):   
-    for item in sorted_list_of_parcel_groups[i]:
-        to_be_determined.append(item)
     to_be_determined.append('\n')
 ########################################################################################################################################################################################################################################################################################
 last_index_0 = len(single_row)
@@ -1469,37 +1461,9 @@ sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: dat
 for i in range(0,len(sorted_list_of_parcel_groups)):   
     for item in sorted_list_of_parcel_groups[i]:
         single_row.append(item)
-
-
-
-last_index_0 = len(single_row)
-list_of_parcel_groups=[]
-parcel_group = []
-
-for i in range(0,last_index_0): # This groups together records that are in the same parcel/address.
-    if i == last_index_0-1:
-        parcel_group.append(single_row[i])
-        list_of_parcel_groups.append(parcel_group)  
-    else:
-        if single_row[i][2] != single_row[i-1][2]:
-            list_of_parcel_groups.append(parcel_group)
-            parcel_group = []
-            parcel_group.append(single_row[i])
-            continue
-        parcel_group.append(single_row[i])
-
-single_row = []
-del list_of_parcel_groups[0]
-
-
-
-sorted_list_of_parcel_groups = sorted(list_of_parcel_groups, key = lambda x: datetime.strptime(x[0][3], "%m/%d/%Y"))
-
-for i in range(0,len(sorted_list_of_parcel_groups)):   
-    for item in sorted_list_of_parcel_groups[i]:
-        single_row.append(item)
     single_row.append('\n')
 ########################################################################################################################################################################################################################################################################################     
+# csv. Writing
 ########################################################################################################################################################################################################################################################################################
 with open('qualified.csv', 'w') as f: 
         write = csv.writer(f)
@@ -1511,7 +1475,7 @@ with open('to-be-determined.csv', 'w') as f:
         write.writerow(csv_headers)
         write.writerows(to_be_determined)  
 
-with open('single-row.csv', 'w') as f:
+with open('single-row.csv', 'w') as f:  # 11/16/2022 I commented out single row because since these have already been sorted by the old sorting program they no longer have any single row.
         write = csv.writer(f)
         write.writerow(csv_headers)
         write.writerows(single_row)  
